@@ -66,13 +66,14 @@
           window.location.replace(target);
         }
 
+        var oldPath = '/together-list/';
         var cleanup = Promise.resolve();
         if ('serviceWorker' in navigator) {
           cleanup = navigator.serviceWorker.getRegistrations()
             .then(function (registrations) {
-              return Promise.all(registrations.map(function (registration) {
-                return registration.unregister();
-              }));
+              return Promise.all(registrations
+                .filter(function (registration) { return registration.scope.indexOf(oldPath) !== -1; })
+                .map(function (registration) { return registration.unregister(); }));
             })
             .catch(function () {});
         }
@@ -81,7 +82,9 @@
           if (window.caches && caches.keys) {
             return caches.keys()
               .then(function (keys) {
-                return Promise.all(keys.map(function (key) { return caches.delete(key); }));
+                return Promise.all(keys
+                  .filter(function (key) { return key.indexOf('together-list') !== -1; })
+                  .map(function (key) { return caches.delete(key); }));
               })
               .catch(function () {});
           }
